@@ -2,14 +2,21 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
+	"os"
 
 	_ "github.com/lib/pq"
 )
-type Database struct {
-	db *sql.DB
-}
 
-func NewDatabase(connectionString string) (*Database, error){
+var db *sql.DB
+
+func ConnectDB() (*sql.DB, error){
+	connectionString := os.Getenv("DATABASE_URI")
+
+	if connectionString == "" {
+		return nil, fmt.Errorf("DATABASE_URI is not set in .env")
+	}
+
 	db, err := sql.Open("postgres", connectionString)
 
 	if err != nil {
@@ -17,13 +24,15 @@ func NewDatabase(connectionString string) (*Database, error){
 		return nil, err
 	}
 
-	return &Database{db: db}, nil 
+	return db, nil 
 }
 
-func (d *Database) Close() {
-	d.db.Close()
+func Close() {
+	if db !=nil {
+		db.Close()
+	}
 }
 
-func (d *Database) GetDB() *sql.DB {
-	return d.db
+func GetDB() *sql.DB {
+	return db
 }
